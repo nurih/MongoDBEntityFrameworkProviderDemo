@@ -1,5 +1,6 @@
-﻿#define MOVIES
-#define PEEPS
+﻿#define POCO
+// #define MOVIES
+// #define PEEPS
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -17,7 +18,7 @@ ArgumentNullException.ThrowIfNull(connectionString, "connectionStinr is null. Yo
 
 #endregion
 
-#if MOVIES
+#if POCO
 
 #region EF DbContext with MongoDB
 
@@ -32,19 +33,22 @@ var pocoContext = MongoDbContext<Poco>.Create(connectionString);
 
 #region Annotate with EF property attributes
 
-/* not working
-BsonClassMap.RegisterClassMap<Poco>(classMap =>
+
+{ // not working
+    BsonClassMap.RegisterClassMap<Poco>(classMap =>
+    {
+        classMap.AutoMap();
+        classMap.GetMemberMap(p => p.Status)
+            .SetSerializer(new EnumSerializer<PocoStatus>(BsonType.String));
+    });
+}
+
 {
-    classMap.AutoMap();
-    classMap.GetMemberMap(p => p.Status)
-        .SetSerializer(new EnumSerializer<PocoStatus>(BsonType.String));
-});
-*/
-/* Not working
-ConventionRegistry.Register("EnumsAsStrings", new ConventionPack{
+    // Not working
+    ConventionRegistry.Register("EnumsAsStrings", new ConventionPack{
     new EnumRepresentationConvention(BsonType.String)}, t => t.GetType().IsEnum
-);
-*/
+    );
+}
 
 pocoContext.Entities.Add(new Poco
 {
@@ -67,6 +71,10 @@ foreach (var d in projected)
 
 
 #endregion
+
+#endif
+
+#if MOVIES
 
 #region movies demo
 Movie? movie = movieContext.Entities.FirstOrDefault(m => m.title == "Back to the Future");
@@ -97,7 +105,7 @@ foreach (var m in filteredResults)
     Console.WriteLine($"{m.Id}: {m.title} ({m.year})");
 }
 
-#endregion 
+#endregion
 
 #endif
 
