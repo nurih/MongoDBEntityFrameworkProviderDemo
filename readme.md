@@ -8,6 +8,8 @@ NuGet: [NuGet Gallery | MongoDB.EntityFrameworkCore 7.0.0-preview.1](https://www
 
 Repo: [mongodb/mongo-efcore-provider: MongoDB Entity Framework Core Provider (github.com)](https://github.com/mongodb/mongo-efcore-provider)
 
+Docs: [MongoDB Entity Framework Core Provider — Entity Framework](https://www.mongodb.com/docs/entity-framework/current/)
+
 ## Why
 
 Entity Framework has long been available to attempt to smooth unify and unify the tasks of storing .NET entities in a backing relational database.
