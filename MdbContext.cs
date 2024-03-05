@@ -7,7 +7,7 @@ using MongoDB.EntityFrameworkCore.Infrastructure;
 
 internal class MongoDbContext<T> : DbContext where T : class
 {
-    public DbSet<T> Documents { get; init; }
+    public DbSet<T> Entities { get; init; }
     public readonly IMongoClient MongoClient;
     public readonly string? DatabaseName;
 

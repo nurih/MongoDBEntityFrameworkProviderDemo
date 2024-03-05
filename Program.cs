@@ -1,8 +1,11 @@
 ﻿#define MOVIES
 #define PEEPS
-using Microsoft.EntityFrameworkCore;
+
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using MongoDB.EntityFrameworkCore.Extensions;
 
 
 
@@ -27,19 +30,50 @@ var pocoContext = MongoDbContext<Poco>.Create(connectionString);
 
 #endregion
 
-#region Annotate with EF
+#region Annotate with EF property attributes
 
-pocoContext.Documents.Add(new Poco { Id = Guid.NewGuid() });
+/* not working
+BsonClassMap.RegisterClassMap<Poco>(classMap =>
+{
+    classMap.AutoMap();
+    classMap.GetMemberMap(p => p.Status)
+        .SetSerializer(new EnumSerializer<PocoStatus>(BsonType.String));
+});
+*/
+/* Not working
+ConventionRegistry.Register("EnumsAsStrings", new ConventionPack{
+    new EnumRepresentationConvention(BsonType.String)}, t => t.GetType().IsEnum
+);
+*/
+
+pocoContext.Entities.Add(new Poco
+{
+    Id = Guid.NewGuid(),
+    SomeDate = DateTime.Now,
+    SomeOtherDate = DateTime.Now,
+    Status = PocoStatus.Final
+});
+
 pocoContext.SaveChanges();
 // look at MDB document - property names mapped by EF are 'Id'=> '_id', 'SomeDate' => 'ef_dt'
 #endregion
 
+#region projection
+var projected = pocoContext.Entities.AsQueryable().Select(p => new Poco() { Id = p.Id });
+foreach (var d in projected)
+{
+    Console.WriteLine(d.ToJson().ToString());
+}
+
+
+#endregion
+
 #region movies demo
-Movie? movie = movieContext.Documents.FirstOrDefault(m => m.title == "Back to the Future");
+Movie? movie = movieContext.Entities.FirstOrDefault(m => m.title == "Back to the Future");
 
 Console.WriteLine($"Movie [{movie?.Id}] [{movie?.plot}]");
 
-var added = movieContext.Documents.Add(new Movie
+var added = movieContext.Entities.Add(new Movie
 {
     // no Id provided... let frameworks below do it.
     title = "Twists" + DateTime.Now.ISO8601(),
@@ -52,7 +86,7 @@ movieContext.SaveChanges(false);
 
 Console.WriteLine($"Movie created {added.Entity.Id}");
 
-IQueryable<Movie> filteredResults = movieContext.Documents
+IQueryable<Movie> filteredResults = movieContext.Entities
     .Where(m => m.year < 1916)
     .OrderBy(m => m.title)
     .ThenBy(m => m.year)
@@ -78,10 +112,10 @@ var person = new Person
     Name = new Name { First = "bob", Last = "bob" }
 };
 
-personContext.Documents.Remove(person);
+personContext.Entities.Remove(person);
 personContext.SaveChanges();
 
-var entityEntry = personContext.Documents.Add(person);
+var entityEntry = personContext.Entities.Add(person);
 
 Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
 
@@ -89,7 +123,7 @@ personContext.SaveChanges();
 
 Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
 
-var foundOne = personContext.Documents.FirstOrDefault(p => p.Id == "li@mo.rw");
+var foundOne = personContext.Entities.FirstOrDefault(p => p.Id == "li@mo.rw");
 
 Console.WriteLine($"Found {foundOne}");
 
@@ -101,7 +135,7 @@ Console.WriteLine($"{foundOne.Id} should now have Name.First {foundOne.Name.Firs
 try
 {
 
-    foundOne = personContext.Documents.FirstOrDefault(p => p.Name.First == "Jack");
+    foundOne = personContext.Entities.FirstOrDefault(p => p.Name.First == "Jack");
 }
 catch (InvalidOperationException e)
 {
