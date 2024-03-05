@@ -13,7 +13,7 @@ public class Poco
   [BsonElement("dt")]
   public DateTime? SomeOtherDate { get; set; }
 
-  [BsonRepresentation(MongoDB.Bson.BsonType.String)]
+  // [BsonRepresentation(MongoDB.Bson.BsonType.String)] Not working.
   public PocoStatus Status { get; set; }
 }
 
