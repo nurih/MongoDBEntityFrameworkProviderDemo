@@ -1,6 +1,6 @@
 ﻿#define POCO
-// #define MOVIES
-// #define PEEPS
+#define MOVIES
+#define PEEPS
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -18,7 +18,6 @@ ArgumentNullException.ThrowIfNull(connectionString, "connectionStinr is null. Yo
 
 #endregion
 
-#if POCO
 
 #region EF DbContext with MongoDB
 
@@ -30,6 +29,8 @@ var pocoContext = MongoDbContext<Poco>.Create(connectionString);
 
 
 #endregion
+
+#if POCO
 
 #region Annotate with EF property attributes
 
@@ -60,10 +61,13 @@ pocoContext.Entities.Add(new Poco
 
 pocoContext.SaveChanges();
 // look at MDB document - property names mapped by EF are 'Id'=> '_id', 'SomeDate' => 'ef_dt'
+
+
+
 #endregion
 
 #region projection
-var projected = pocoContext.Entities.AsQueryable().Select(p => new Poco() { Id = p.Id });
+var projected = pocoContext.Entities.AsQueryable();//.Select(p => new Poco() { Id = p.Id });
 foreach (var d in projected)
 {
     Console.WriteLine(d.ToJson().ToString());
@@ -179,10 +183,11 @@ void TryBlindUpdate(MongoDbContext<Person> personContext)
     Console.WriteLine("Extra round trips?");
 
     var entityEntry = personContext.Attach(new Person { Id = "newly@example.com" });
+
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
     Console.WriteLine("Attached blindly with Id");
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
-    entityEntry.Entity.Age = 42;
+    entityEntry.Entity.Age = 789;
     Console.WriteLine("Changed one property");
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
 

@@ -15,6 +15,11 @@ public class Poco
 
   // [BsonRepresentation(MongoDB.Bson.BsonType.String)] Not working.
   public PocoStatus Status { get; set; }
+
+  public override string ToString()
+  {
+    return $"{Id}: {SomeDate}, {SomeOtherDate} {Status}";
+  }
 }
 
 public enum PocoStatus
@@ -22,5 +27,4 @@ public enum PocoStatus
   Initial = 0,
   Interstitial,
   Final
-
 }
