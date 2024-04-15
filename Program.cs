@@ -142,7 +142,7 @@ Console.WriteLine($"Found {foundOne}");
 foundOne.Name.First = $"Jack {DateTime.Now.ISO8601()}";
 
 personContext.SaveChanges();
-Console.WriteLine($"{foundOne.Id} should now have Name.First {foundOne.Name.First}");
+Console.WriteLine($"{foundOne.Id} should now have 'Name.First' = {foundOne.Name.First}");
 
 try
 {
