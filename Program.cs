@@ -19,6 +19,35 @@ ArgumentNullException.ThrowIfNull(connectionString, "connectionStinr is null. Yo
 #endregion
 
 
+#region Conventions and mapping
+{ // not working
+    BsonClassMap.RegisterClassMap<Poco>(classMap =>
+    {
+        classMap.AutoMap();
+        classMap.MapMember(m => m.Status).SetElementName("TheStatus")
+            .SetSerializer(new EnumSerializer<PocoStatus>(BsonType.String));
+    });
+}
+
+{
+    // Not working
+    ConventionRegistry.Register(
+        "EnumsAsStrings",
+        new ConventionPack{
+            new EnumRepresentationConvention(BsonType.String)
+        },
+        t =>
+        {
+            Console.WriteLine($"{t.Name}: {t.GetType().IsEnum} / {t.IsEnum}");
+            return t.GetType().IsEnum || t.IsEnum || t.Name == "PocoStatus";
+        }
+    );
+
+
+}
+#endregion
+
+
 #region EF DbContext with MongoDB
 
 var movieContext = MongoDbContext<Movie>.Create(connectionString);
@@ -34,26 +63,11 @@ var pocoContext = MongoDbContext<Poco>.Create(connectionString);
 
 #region Annotate with EF property attributes
 
-
-{ // not working
-    BsonClassMap.RegisterClassMap<Poco>(classMap =>
-    {
-        classMap.AutoMap();
-        classMap.GetMemberMap(p => p.Status)
-            .SetSerializer(new EnumSerializer<PocoStatus>(BsonType.String));
-    });
-}
-
-{
-    // Not working
-    ConventionRegistry.Register("EnumsAsStrings", new ConventionPack{
-    new EnumRepresentationConvention(BsonType.String)}, t => t.GetType().IsEnum
-    );
-}
+Console.WriteLine("Poco / properties / serialization");
 
 pocoContext.Entities.Add(new Poco
 {
-    Id = Guid.NewGuid(),
+    Marklar = Guid.NewGuid(),
     SomeDate = DateTime.Now,
     SomeOtherDate = DateTime.Now,
     Status = PocoStatus.Final
@@ -88,6 +102,7 @@ Console.WriteLine($"Movie [{movie?.Id}] [{movie?.plot}]");
 var added = movieContext.Entities.Add(new Movie
 {
     // no Id provided... let frameworks below do it.
+
     title = "Twists" + DateTime.Now.ISO8601(),
     plot = "Twist!",
     rated = "APPROVED",
@@ -135,7 +150,7 @@ personContext.SaveChanges();
 
 Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
 
-var foundOne = personContext.Entities.FirstOrDefault(p => p.Id == "li@mo.rw");
+var foundOne = personContext.Entities.First(p => p.Id == entityEntry.Entity.Id);
 
 Console.WriteLine($"Found {foundOne}");
 
@@ -179,10 +194,11 @@ void TryInsertMany(MongoDbContext<Person> personContext)
 
 void TryBlindUpdate(MongoDbContext<Person> personContext)
 {
+    const string SOME_ID = "newly@example.com";
 
     Console.WriteLine("Extra round trips?");
 
-    var entityEntry = personContext.Attach(new Person { Id = "newly@example.com" });
+    var entityEntry = personContext.Add(new Person { Id = SOME_ID });
 
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
     Console.WriteLine("Attached blindly with Id");
@@ -190,10 +206,15 @@ void TryBlindUpdate(MongoDbContext<Person> personContext)
     entityEntry.Entity.Age = 789;
     Console.WriteLine("Changed one property");
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
-
     personContext.SaveChanges();
+
     Console.WriteLine("Saved");
     Console.WriteLine($"Person {entityEntry.Entity.Id} - {entityEntry.State}");
+
+    var savedOne = personContext.Entities.First(p => p.Id == SOME_ID);
+    savedOne.Name = new Name() { First = "Addison" };
+    personContext.SaveChanges();
+
 }
 
 

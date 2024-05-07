@@ -19,3 +19,11 @@ The MongoDB provider for EF is an effort to give similar EF user experience, but
 > Note: The current provider is in preview status. 
 >
 > So... this will age nicely :-)
+
+
+## Notes
+
+1. In the 8.0 GA release, both `BsonElementAttribute()` (MongoDB) and `ColumnAttribute()` (EF / Data Annotation) are respected. You can name the MongoDB side field and keep your POCO names as you wish.
+1. Applying `[BsonRepresentation(..)]` to a POCO attribute throws.
+1. Applying `[BsonId]` attribute to a field on a POCO works - you can choose which property will map to the MongoDB document's `_id` field.
+1. Using the ModelBuilder to set property behavior such as conversion POCO &lt;--&gt; BSON, value generation etc demo updated, for specific properties.

@@ -4,7 +4,8 @@ using MongoDB.Bson.Serialization.Attributes;
 public class Poco
 {
 
-  public Guid Id { get; set; }
+  [BsonId] // designate field as _id
+  public Guid Marklar { get; set; }
 
 
   [Column("ef_dt")]
@@ -13,18 +14,11 @@ public class Poco
   [BsonElement("dt")]
   public DateTime? SomeOtherDate { get; set; }
 
-  // [BsonRepresentation(MongoDB.Bson.BsonType.String)] Not working.
+  // [BsonRepresentation(MongoDB.Bson.BsonType.String)] //Throws
   public PocoStatus Status { get; set; }
 
   public override string ToString()
   {
-    return $"{Id}: {SomeDate}, {SomeOtherDate} {Status}";
+    return $"[{Marklar}]: {SomeDate}, {SomeOtherDate} {Status}";
   }
-}
-
-public enum PocoStatus
-{
-  Initial = 0,
-  Interstitial,
-  Final
 }
